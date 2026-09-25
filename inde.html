@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CEO por un Día — Simulador Gerencial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --paper:#F1ECDA; --panel:#E7E0C6; --ink:#212B21; --ink-soft:#5C6455;
+  --rule:#C8BE9C; --stamp:#8C3229; --stamp-ink:#6E2620; --gold:#A0812E;
+  --good:#3E6B4C; --warn:#A0812E; --bad:#8C3229;
+  --font-display:'Fraunces',Georgia,'Times New Roman',serif;
+  --font-body:'IBM Plex Sans',Arial,Helvetica,sans-serif;
+  --font-mono:'IBM Plex Mono','Courier New',monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#1B211B; --panel:#242B22; --ink:#EAE6D4; --ink-soft:#A3AA96;
+    --rule:#3B4436; --stamp:#E08C7E; --stamp-ink:#E08C7E; --gold:#D3B26C;
+    --good:#7FB58F; --warn:#D3B26C; --bad:#E08C7E;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1B211B; --panel:#242B22; --ink:#EAE6D4; --ink-soft:#A3AA96;
+  --rule:#3B4436; --stamp:#E08C7E; --stamp-ink:#E08C7E; --gold:#D3B26C;
+  --good:#7FB58F; --warn:#D3B26C; --bad:#E08C7E;
+  box-sizing:border-box;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;font-family:var(--font-body);color:var(--ink);background:var(--paper);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+.wrap{max-width:980px;margin:auto;padding:16px 20px 48px}
+.nav{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--ink);padding:14px 0}
+.brand{font-family:var(--font-display);font-weight:700;font-size:19px}
+.brand b{color:var(--stamp)}
+.tag{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft)}
+.eyebrow{font-family:var(--font-mono);font-size:12px;color:var(--gold);font-weight:600}
+h1,h2,h3{font-family:var(--font-display);margin:0;font-weight:600}
+.lead{font-size:16.5px;line-height:1.6;color:var(--ink-soft);max-width:52ch}
+.btn{font-family:var(--font-body);border:2px solid var(--ink);background:var(--stamp);border-color:var(--stamp);
+  color:#fbf7ea;padding:15px 22px;border-radius:8px;font-weight:600;font-size:15px;cursor:pointer;
+  min-height:52px;transition:transform .12s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+.btn.ghost:hover{border-color:var(--ink)}
+
+/* HOME */
+.hero{padding:44px 0 20px;display:grid;grid-template-columns:1.3fr .7fr;gap:34px;align-items:center}
+.hero h1{font-size:clamp(38px,6.4vw,68px);line-height:.98;margin:10px 0 18px}
+.ledgerbox{border:2px solid var(--ink);border-radius:4px;background:var(--panel);padding:26px;position:relative}
+.ledgerbox::before{content:"";position:absolute;inset:6px;border:1px solid var(--rule);border-radius:2px;pointer-events:none}
+.big{font-family:var(--font-mono);font-size:52px;font-weight:600;color:var(--stamp)}
+.foot-label{font-family:var(--font-mono);font-size:11px;letter-spacing:.03em;color:var(--ink-soft);margin-top:14px;border-top:1px dashed var(--rule);padding-top:10px}
+.actions{margin-top:22px;display:flex;gap:10px;flex-wrap:wrap}
+
+/* COMPANIES */
+.screen{margin-top:26px}
+.head{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap;border-bottom:1px dashed var(--rule);padding-bottom:16px}
+.head h2{font-size:30px}
+.companies{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px}
+.card{background:var(--panel);border:2px solid var(--ink);border-radius:6px;padding:20px;text-align:left;cursor:pointer;min-height:230px;
+  display:flex;flex-direction:column;font-family:var(--font-body)}
+.card:hover{background:var(--paper)}
+.card:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.stampicon{width:48px;height:48px;border-radius:50%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--paper)}
+.card h3{font-size:19px;margin:14px 0 6px;line-height:1.2}
+.card p{font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin:0}
+.card .go{margin-top:auto;padding-top:14px;font-family:var(--font-mono);font-size:11.5px;color:var(--stamp);font-weight:600}
+
+/* GAME SHELL */
+.game{border:2px solid var(--ink);border-radius:6px;background:var(--paper);overflow:hidden}
+.gamehead{padding:16px 22px;background:var(--panel);border-bottom:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.gamehead b{font-family:var(--font-display);font-size:17px}
+.steps{display:flex;gap:6px;padding:14px 22px 0}
+.step-dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--rule);font-family:var(--font-mono);font-size:11px;
+  display:flex;align-items:center;justify-content:center;color:var(--ink-soft)}
+.step-dot.done{border-color:var(--good);background:var(--good);color:#fff}
+.step-dot.now{border-color:var(--stamp);color:var(--stamp);font-weight:600}
+.scenario{padding:22px 22px 6px}
+.alert{font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.03em;color:var(--stamp)}
+.scenario h3{font-size:27px;margin:8px 0 10px}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+.option{border:2px solid var(--rule);background:var(--panel);border-radius:6px;padding:18px;text-align:left;cursor:pointer;min-height:130px}
+.option:hover{border-color:var(--ink)}
+.option:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.option b{display:block;font-family:var(--font-body);font-size:15.5px;margin-bottom:7px}
+.option span{font-size:13px;color:var(--ink-soft);line-height:1.5}
+.side{padding:6px 22px 22px}
+.meters{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.meter{border:1px solid var(--rule);border-radius:6px;padding:11px;background:var(--panel)}
+.meter strong{display:block;font-size:11.5px;font-family:var(--font-body)}
+.meter .val{font-family:var(--font-mono);font-size:15px;margin-top:4px;display:block}
+.line{height:6px;background:var(--rule);border-radius:4px;margin-top:8px;overflow:hidden}
+.line i{display:block;height:100%;background:var(--stamp)}
+.history{margin-top:16px;border-top:1px dashed var(--rule);padding-top:10px}
+.row{padding:7px 0;border-bottom:1px dotted var(--rule);font-size:13px;color:var(--ink-soft)}
+.row b{color:var(--ink)}
+
+/* IMPACT / RESULT SCREEN */
+.impact{padding:22px}
+.impact-choice{background:var(--panel);border-left:4px solid var(--stamp);border-radius:0 6px 6px 0;padding:16px 18px;margin:14px 0 20px}
+.impact-choice b{display:block;font-size:15.5px;margin-bottom:4px}
+.impact-choice span{font-size:13.5px;color:var(--ink-soft);line-height:1.5}
+.deltas{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.delta{border:1px solid var(--rule);border-radius:6px;padding:13px;background:var(--panel);text-align:center}
+.delta .lbl{font-size:11.5px;color:var(--ink-soft)}
+.delta .num{font-family:var(--font-mono);font-size:19px;margin-top:6px;font-weight:600}
+.delta.up .num{color:var(--good)}
+.delta.down .num{color:var(--bad)}
+.delta.flat .num{color:var(--ink-soft)}
+
+/* FINAL */
+.final{padding:26px}
+.finalgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px}
+.finalbox{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:16px}
+.finalbox b{font-size:14px}
+.score{font-family:var(--font-mono);font-size:26px;font-weight:600;color:var(--stamp)}
+.stamp-seal{float:right;width:108px;height:108px;border:3px solid var(--stamp);border-radius:50%;color:var(--stamp);
+  display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--font-mono);font-size:11px;
+  font-weight:600;transform:rotate(-9deg);letter-spacing:.03em;margin:0 0 14px 16px;padding:8px}
+.notice{background:var(--panel);border:1px dashed var(--rule);border-radius:6px;padding:16px;line-height:1.55;margin-top:4px;clear:both}
+.notice b{font-family:var(--font-display);font-size:15px}
+
+@media(max-width:760px){
+  .hero{grid-template-columns:1fr;padding-top:26px}
+  .companies,.options,.finalgrid,.deltas{grid-template-columns:1fr}
+  .meters{grid-template-columns:1fr 1fr}
+  .scenario,.final,.impact{padding:18px}
+  .side{padding:4px 18px 18px}
+  .stamp-seal{float:none;margin:0 0 14px}
+}
+
+/* NAV LINK */
+.navlink{font-family:var(--font-mono);font-size:12px;color:var(--stamp);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0}
+
+/* METER TOOLTIP (details/summary) */
+.meter{padding:0;overflow:hidden}
+.meter summary{list-style:none;cursor:pointer;padding:11px;display:block}
+.meter summary::-webkit-details-marker{display:none}
+.meter summary::after{content:"ⓘ";float:right;color:var(--ink-soft);font-size:11px}
+.meter .info{font-size:11.5px;color:var(--ink-soft);line-height:1.4;padding:0 11px 11px;border-top:1px dashed var(--rule);margin-top:8px;padding-top:8px}
+
+/* COMMUNITY STAT */
+.crowd{font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);background:var(--panel);border:1px dashed var(--rule);
+  border-radius:6px;padding:10px 12px;margin-top:14px}
+.crowd b{color:var(--stamp)}
+
+/* RANKING SAVE + QR */
+.savebox{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.savebox input{font-family:var(--font-body);font-size:14px;padding:12px 14px;border:2px solid var(--rule);border-radius:8px;
+  background:var(--paper);color:var(--ink);flex:1;min-width:180px;min-height:48px}
+.savebox input:focus-visible{outline:3px solid var(--gold);outline-offset:1px;border-color:var(--ink)}
+.saved-msg{font-family:var(--font-mono);font-size:12.5px;color:var(--good);margin-top:10px}
+.qrblock{display:flex;gap:16px;align-items:center;margin-top:20px;padding:16px;border:1px dashed var(--rule);border-radius:6px;background:var(--panel);flex-wrap:wrap}
+.qrblock #qrimg{background:#fff;padding:8px;border-radius:4px;line-height:0}
+.qrblock span{font-size:13px;color:var(--ink-soft);max-width:32ch}
+
+/* RANKING SCREEN */
+.ranking-list{margin-top:18px;border-top:1px solid var(--rule)}
+.rank-row{display:grid;grid-template-columns:32px 1fr auto auto;gap:12px;align-items:center;padding:11px 4px;border-bottom:1px dotted var(--rule);font-size:13.5px}
+.rank-row .pos{font-family:var(--font-mono);color:var(--gold);font-weight:600}
+.rank-row .prof{font-size:11.5px;color:var(--ink-soft)}
+.rank-row .sc{font-family:var(--font-mono);font-weight:600;color:var(--stamp)}
+.empty-rank{padding:24px 4px;color:var(--ink-soft);font-size:14px}
+
+@media print{
+  body *{visibility:hidden}
+  .final,.final *{visibility:visible}
+  .final{position:absolute;left:0;top:0;width:100%;border:none;padding:0}
+  .final .actions,.final .savebox,.final .qrblock{display:none}
+}
+</style>
+</head>
+<body><div class="wrap">
+<div class="nav"><div class="brand">CEO <b>por un día</b></div><div style="display:flex;align-items:center;gap:16px"><button class="navlink" id="navRanking">Ranking del día</button><div class="tag">3.º año · Tecnicatura Contable</div></div></div>
+<div id="app"></div>
+<script>
+const companies={
+campo:{name:'Envases Plast "Campo Grande"',icon:'🏭',type:'Empresa industrial',intro:'Fabricación de envases para clientes de la región.'},
+misionero:{name:'Yerba Mate "El Misionero"',icon:'🌿',type:'PYME agroindustrial',intro:'Producción y comercialización de yerba mate.'},
+logistica:{name:'Servicios Logísticos del Norte',icon:'🚚',type:'Empresa de transporte y servicios',intro:'Transporte y servicios logísticos para empresas de la región.'}
+};
+const metricNames=['Finanzas','Clientes','Procesos','Aprendizaje'];
+const metricIcons=['💰','👥','⚙️','🎓'];
+const qs=[
+['Aumento de los insumos','El costo de los principales insumos aumentó un 30%. ¿Cómo responde la empresa?',[['Aumentar el precio de venta','Mejorás el margen por unidad, pero aumenta la presión sobre los clientes.',[10,-10,0,0,5]],['Mantener el precio','Conservás competitividad, pero la presión sobre el margen aumenta.',[-8,8,0,0,3]]]],
+['La consecuencia','La primera decisión generó un nuevo desafío. Ahora debés responder sin perder el control de la empresa.',[['Invertir en marketing y fidelización','Aumentás el gasto para fortalecer la relación con los clientes.',[-5,8,0,3,1]],['Ajustar nuevamente precios y costos','Buscás recuperar margen, asumiendo mayor presión sobre clientes y operación.',[5,-7,0,0,5]]]],
+['Problema operativo','La estructura de costos está generando presión sobre la operación. ¿Qué hacés con el mantenimiento?',[['Reducir mantenimiento','Ahorrás en el corto plazo, pero aumentan los riesgos de fallas y calidad.',[6,-2,-12,0,12]],['Recuperar mantenimiento preventivo','Aumentás el gasto ahora para proteger la continuidad productiva.',[-6,0,12,2,-8]]]],
+['Cliente estratégico','Uno de tus principales clientes solicita un descuento del 8% para renovar su contrato anual.',[['Aceptar el descuento','Conservás al cliente y asegurás volumen, pero reducís margen.',[-8,10,0,0,2]],['Rechazar el descuento','Protegés el margen, aunque existe riesgo de perder volumen.',[8,-7,0,0,3]]]],
+['Desafío presupuestario','Tenés 10 unidades presupuestarias para asignar al próximo período.',[['Priorizar producción y marketing','Buscás sostener ventas y capacidad productiva.',[2,3,2,-2,1]],['Priorizar mantenimiento y capacitación','Fortalecés procesos internos y desarrollo de la organización.',[-2,1,7,7,-6]]]],
+['Decisión final','Los indicadores muestran resultados diferentes. ¿Dónde concentrás el último esfuerzo?',[['Priorizar rentabilidad','Buscás mejorar el resultado financiero en el corto plazo.',[8,-2,2,0,4]],['Priorizar clientes y procesos','Buscás consolidar la relación con clientes y la eficiencia interna.',[1,6,7,3,-5]]]]
+];
+const TAGS=[['F','R'],['R','F'],['F','R'],['R','F'],['F','R'],['F','R']];
+const metricInfo=['Mide la rentabilidad y el margen de la empresa.','Mide la satisfacción y fidelidad de los clientes.','Mide la eficiencia y calidad de las operaciones internas.','Mide la capacitación y el desarrollo del equipo.'];
+const SKEY='ceo_sessions_v1';
+function loadSessions(){try{return JSON.parse(localStorage.getItem(SKEY))||[]}catch(e){return[]}}
+function saveSession(rec){try{let all=loadSessions();all.push(rec);if(all.length>200)all=all.slice(-200);localStorage.setItem(SKEY,JSON.stringify(all))}catch(e){}}
+let company=null,step=0,path=[],chosenTags=[],visitorName='',s,saved=false;
+const app=document.getElementById('app');
+function reset(){step=0;path=[];chosenTags=[];visitorName='';s={fin:50,cli:50,proc:50,apr:50,risk:20};saved=false}
+function btn(t,cls=''){return `<button class="btn ${cls}">${t}</button>`}
+let idleTimer;
+function armIdle(){clearTimeout(idleTimer);idleTimer=setTimeout(()=>{if(!document.getElementById('homeMark'))home()},60000)}
+document.addEventListener('click',armIdle);
+document.getElementById('navRanking').onclick=rankingScreen;
+armIdle();
+function home(){reset();app.innerHTML=`<section class="hero" id="homeMark"><div><div class="eyebrow">Experiencia interactiva · Feria de Contabilidad</div><h1>CEO<br>por un día.</h1><p class="lead">Asumí la dirección de una empresa de la región, enfrentá seis decisiones reales de gestión y recibí tu dictamen gerencial al finalizar.</p><div class="actions" id="actions">${btn('Empezar →')}</div><div class="qrblock"><div id="qrimg-home"></div><span>¿Preferís jugarlo en tu celular? Escaneá este código.</span></div></div><div class="ledgerbox"><div class="eyebrow">Tu recorrido</div><div class="big">6</div><p class="lead" style="margin-top:6px">decisiones estratégicas encadenadas, cada una modifica la siguiente.</p><div class="foot-label">Contabilidad · Estrategia · Presupuesto · Costos</div></div></section>`;document.getElementById('actions').onclick=companiesScreen;try{new QRCode(document.getElementById('qrimg-home'),{text:window.location.href,width:86,height:86})}catch(e){}}
+function companiesScreen(){app.innerHTML=`<section class="screen"><div class="head"><div><div class="eyebrow">Paso 1 de 3</div><h2>Elegí la empresa que vas a dirigir</h2><p class="lead">Cada empresa enfrenta el mismo mercado, pero tus decisiones definen su rumbo.</p></div>${btn('← Volver','ghost')}</div><div class="companies">${Object.entries(companies).map(([id,c])=>`<button class="card" data-id="${id}"><div class="stampicon">${c.icon}</div><h3>${c.name}</h3><p>${c.type}<br>${c.intro}</p><span class="go">Asumir dirección →</span></button>`).join('')}</div></section>`;document.querySelector('.head .ghost').onclick=home;document.querySelectorAll('.card').forEach(x=>x.onclick=()=>select(x.dataset.id))}
+function select(id){company=companies[id];reset();introScreen()}
+function introScreen(){app.innerHTML=`<section class="screen"><div class="game"><div class="gamehead"><div><div class="eyebrow">Paso 2 de 3 · Nueva gestión</div><b>${company.icon} ${company.name}</b></div><span class="tag">${company.type}</span></div><div class="scenario"><div class="alert">Tu primer día como CEO</div><h3>La empresa necesita una decisión.</h3><p class="lead">Acabás de asumir la dirección. La empresa funciona, pero el contexto económico empieza a presionar sus operaciones. <b>Cada decisión afecta a la siguiente.</b></p><div class="eyebrow" style="margin-top:18px;display:block">Antes de empezar, ¿cómo te llamás?</div><div class="savebox" style="margin-top:8px"><input id="visitorNameInput" maxlength="24" placeholder="Tu nombre" autofocus></div><div id="nameWarn"></div></div><div class="side"><div class="notice">Los alumnos del stand actúan como tu equipo asesor: pedíles que te expliquen los conceptos contables y gerenciales durante la simulación.</div><div class="actions"><span id="enterBtn">${btn('Entrar a la empresa →')}</span><span id="chooseOtherBtn">${btn('Elegir otra empresa','ghost')}</span></div></div></div></section>`;
+document.getElementById('enterBtn').onclick=()=>{let v=document.getElementById('visitorNameInput').value.trim();if(!v){document.getElementById('nameWarn').innerHTML='<div class="saved-msg" style="color:var(--bad)">Escribí tu nombre para continuar.</div>';document.getElementById('visitorNameInput').focus();return}visitorName=v;step=1;gameScreen()};
+document.getElementById('chooseOtherBtn').onclick=companiesScreen}
+function apply(e){s.fin=Math.max(0,Math.min(100,s.fin+e[0]));s.cli=Math.max(0,Math.min(100,s.cli+e[1]));s.proc=Math.max(0,Math.min(100,s.proc+e[2]));s.apr=Math.max(0,Math.min(100,s.apr+e[3]));s.risk=Math.max(0,Math.min(100,s.risk+e[4]))}
+function meter(n,v,icon,info){return `<details class="meter"><summary><strong>${icon} ${n}</strong><span class="val">${Math.round(v)}/100</span><div class="line"><i style="width:${v}%"></i></div></summary><div class="info">${info}</div></details>`}
+function metersHTML(){return metricNames.map((n,i)=>meter(n,[s.fin,s.cli,s.proc,s.apr][i],metricIcons[i],metricInfo[i])).join('')}
+function stepDots(){let h='';for(let i=1;i<=6;i++){h+=`<span class="step-dot ${i<step?'done':i===step?'now':''}">${i<step?'✓':i}</span>`}return h}
+function gameScreen(){let q=qs[step-1];app.innerHTML=`<section class="screen"><div class="game"><div class="gamehead"><div><div class="eyebrow">${visitorName} · CEO de ${company.name}</div><b>Decisión ${step} de 6</b></div><span class="tag">Tu recorrido modifica el resultado</span></div><div class="steps">${stepDots()}</div><div class="scenario"><div class="alert">Escenario ${step}</div><h3>${q[0]}</h3><p class="lead">${q[1]}</p><div class="options">${q[2].map((o,i)=>`<button class="option" data-i="${i}"><b>${String.fromCharCode(65+i)}. ${o[0]}</b><span>${o[1]}</span></button>`).join('')}</div></div><div class="side"><div class="meters">${metersHTML()}</div><div class="history"><div class="eyebrow">Recorrido</div>${path.length?path.map((h,i)=>`<div class="row"><b>Decisión ${i+1}:</b> ${h}</div>`).join(''):'<div class="row">Todavía no tomaste decisiones.</div>'}</div></div></div></section>`;document.querySelectorAll('.option').forEach(x=>x.onclick=()=>choose(q,+x.dataset.i))}
+function deltaCard(i,d){let cls=d>0?'up':d<0?'down':'flat',sign=d>0?'+':'';return `<div class="delta ${cls}"><div class="lbl">${metricIcons[i]} ${metricNames[i]}</div><div class="num">${sign}${d}</div></div>`}
+function crowdStat(stepIdx,choiceText){let all=loadSessions().filter(r=>r.history&&r.history.length>=stepIdx);if(!all.length)return'';let same=all.filter(r=>r.history[stepIdx-1]===choiceText).length;let pct=Math.round(same/all.length*100);return `<div class="crowd">Hoy, <b>${pct}%</b> de quienes ya jugaron eligió lo mismo que vos en este momento (sobre ${all.length} recorrido${all.length===1?'':'s'} registrado${all.length===1?'':'s'}).</div>`}
+function choose(q,i){let o=q[2][i];apply(o[2]);path.push(o[0]);chosenTags.push(TAGS[step-1][i]);let cstat=crowdStat(step,o[0]);app.innerHTML=`<section class="screen"><div class="game"><div class="gamehead"><div><div class="eyebrow">${visitorName} · CEO de ${company.name}</div><b>Resultado · Decisión ${step} de 6</b></div><span class="tag">Así impactó tu elección</span></div><div class="impact"><div class="impact-choice"><b>${String.fromCharCode(65+i)}. ${o[0]}</b><span>${o[1]}</span></div><div class="eyebrow">Impacto en el Tablero de Comando</div><div class="deltas" style="margin-top:10px">${o[2].slice(0,4).map((d,idx)=>deltaCard(idx,d)).join('')}</div>${cstat}<div class="actions" style="margin-top:22px">${btn(step<6?'Continuar →':'Ver dictamen gerencial →')}</div></div></div></section>`;document.querySelector('.btn').onclick=()=>{step<6?(step++,gameScreen()):finish()}}
+function generateAnalysis(){
+let f=chosenTags.filter(t=>t==='F').length,r=6-f;
+let estilo;
+if(f>=5)estilo='Priorizaste casi siempre el resultado financiero inmediato, incluso cuando eso implicaba tensar la relación con los clientes o los procesos internos.';
+else if(f===4)estilo='Tu gestión tendió a priorizar el resultado financiero de corto plazo, aunque en un par de momentos cuidaste a los clientes o los procesos.';
+else if(f===3)estilo='Alternaste entre cuidar el margen financiero y cuidar a los clientes y los procesos, sin una tendencia dominante.';
+else if(f===2)estilo='Tu gestión tendió a priorizar a los clientes y la solidez de los procesos, aunque en algunos momentos protegiste el margen.';
+else estilo='Priorizaste casi siempre a los clientes y la solidez de los procesos por sobre el resultado financiero inmediato.';
+let diffs=[['Finanzas',s.fin-50],['Clientes',s.cli-50],['Procesos internos',s.proc-50],['Aprendizaje',s.apr-50]];
+let best=diffs.reduce((a,b)=>b[1]>a[1]?b:a),worst=diffs.reduce((a,b)=>b[1]<a[1]?b:a);
+let riesgo=s.risk>=45?'El nivel de riesgo operativo quedó alto: varias decisiones priorizaron la urgencia por sobre la prevención.':s.risk<=15?'Mantuviste el riesgo operativo bajo control durante todo el recorrido.':'El riesgo operativo se mantuvo en un nivel moderado.';
+return `<p class="lead">${estilo} La perspectiva más fortalecida fue <b>${best[0]}</b> (${best[1]>=0?'+':''}${best[1]}), mientras que <b>${worst[0]}</b> fue la más resentida (${worst[1]>=0?'+':''}${worst[1]}). ${riesgo}</p>`
+}
+function status(v){return v>=65?'Favorable':v>=45?'Estable':'Crítico'}
+function finish(){let avg=Math.round((s.fin+s.cli+s.proc+s.apr)/4),profile=avg>=72?'Gestión equilibrada':avg>=58?'Gestión orientada a la eficiencia':'Gestión bajo presión';
+app.innerHTML=`<section class="screen"><div class="game"><div class="gamehead"><div><div class="eyebrow">Paso 3 de 3</div><b>📜 Dictamen gerencial</b></div><span class="tag">Gestión completada</span></div><div class="final"><div class="stamp-seal">DICTAMEN<br>GERENCIAL</div><div class="eyebrow">${company.name}</div><h2>Así terminó tu gestión, ${visitorName}.</h2><p class="lead">El resultado se construyó a partir de las seis decisiones tomadas durante el recorrido.</p><div class="finalgrid">${metricNames.map((n,i)=>{let v=[s.fin,s.cli,s.proc,s.apr][i];return `<div class="finalbox"><b>${metricIcons[i]} ${n}</b><div class="score">${Math.round(v)}</div><span class="tag">${status(v)}</span></div>`}).join('')}</div><div class="notice"><b>Perfil de gestión: ${profile}</b><br>Tu resultado es consecuencia de las decisiones tomadas durante el recorrido y de cómo se fueron acumulando sus efectos.</div><div class="notice" style="margin-top:12px"><b>Análisis de tu gestión</b>${generateAnalysis()}</div><h3 style="margin-top:24px;font-size:19px">Tu recorrido</h3><div class="history">${path.map((h,i)=>`<div class="row"><b>${i+1}.</b> ${h}</div>`).join('')}</div><div id="saveArea"><div class="eyebrow" style="margin-top:22px;display:block">Sumarte al ranking del día</div><div class="savebox"><input id="visitorNameSave" maxlength="24" value="${visitorName}">${btn('Guardar resultado','ghost')}</div><div id="savedMsg"></div></div><div class="qrblock"><div id="qrimg"></div><span>Escaneá el código para jugar esta misma simulación desde tu celular.</span></div><div class="actions" style="margin-top:22px">${btn('Nueva simulación')}${btn('Cambiar empresa','ghost')}${btn('Imprimir dictamen','ghost')}</div></div></div></section>`;
+try{new QRCode(document.getElementById('qrimg'),{text:window.location.href,width:92,height:92})}catch(e){}
+document.getElementById('saveArea').querySelector('.btn').onclick=()=>{if(saved)return;let name=document.getElementById('visitorNameSave').value.trim()||visitorName||'Visitante';saveSession({name,company:company.name,avg,profile,history:path.slice(),ts:Date.now()});saved=true;document.getElementById('savedMsg').innerHTML='<div class="saved-msg">✓ Guardado. </div>';document.getElementById('savedMsg').querySelector('.saved-msg').append(Object.assign(document.createElement('button'),{className:'navlink',textContent:'Ver ranking del día',onclick:rankingScreen}))};
+let actionBtns=document.querySelectorAll('.final .actions .btn');
+actionBtns[0].onclick=()=>{reset();introScreen()};
+actionBtns[1].onclick=companiesScreen;
+actionBtns[2].onclick=()=>window.print()}
+const ADMIN_PIN='3790';
+function checkPin(action){let entered=prompt(`Código para ${action}:`);if(entered===null)return false;if(entered!==ADMIN_PIN){alert('Código incorrecto.');return false}return true}
+function deleteSession(ts){if(!checkPin('borrar este resultado'))return;try{let all=loadSessions().filter(r=>r.ts!==ts);localStorage.setItem(SKEY,JSON.stringify(all))}catch(e){}rankingScreen()}
+function clearRanking(){if(!checkPin('vaciar todo el ranking'))return;try{localStorage.removeItem(SKEY)}catch(e){}rankingScreen()}
+function rankingScreen(){let all=loadSessions().slice().sort((a,b)=>b.avg-a.avg).slice(0,10);
+let rows=all.length?all.map((r,i)=>`<div class="rank-row"><span class="pos">${i+1}</span><span>${r.name}<br><span class="prof">${r.company} · ${r.profile}</span></span><span class="sc">${r.avg}/100</span><button class="navlink" data-ts="${r.ts}" title="Borrar este resultado">Borrar</button></div>`).join(''):'<div class="empty-rank">Todavía nadie guardó su resultado hoy. ¡Sé el primer CEO del ranking!</div>';
+app.innerHTML=`<section class="screen"><div class="head"><div><div class="eyebrow">Ranking del día</div><h2>Mejores gestiones de la jornada</h2><p class="lead">Se guarda solo en este dispositivo, para el stand de hoy. Borrar un resultado o vaciar el ranking pide un código de 4 dígitos.</p></div>${btn('← Volver','ghost')}</div><div class="ranking-list">${rows}</div>${all.length?`<div class="actions" style="margin-top:18px">${btn('Vaciar ranking del día','ghost')}</div>`:''}</section>`;
+document.querySelector('.head .ghost').onclick=home;
+document.querySelectorAll('.rank-row .navlink').forEach(b=>b.onclick=()=>deleteSession(Number(b.dataset.ts)));
+let clearBtn=document.querySelector('.screen > .actions .ghost');if(clearBtn)clearBtn.onclick=clearRanking}
+home();
+</script>
+</div></body></html>
