@@ -1,5 +1,5 @@
 /* Endpoint de envío del informe por Brevo. Se activa después de configurar el backend en Vercel. */
-const SCRIPT_URL = "PENDIENTE_VERCEL";
+const SCRIPT_URL = "https://ceo-por-un-dia-api.vercel.app/api/send-report";
 const companies={
 campo:{name:"Envases Plast “Campo Grande”",icon:"🏭",type:"Empresa industrial",intro:"Fabricación de envases para clientes de la región."},
 misionero:{name:"Yerba Mate “El Misionero”",icon:"🌿",type:"PYME agroindustrial",intro:"Producción y comercialización de yerba mate."},
