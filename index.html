@@ -132,7 +132,48 @@ function identity(){app.innerHTML='<section class="screen"><div class="head"><di
 function companiesScreen(){app.innerHTML='<section class="screen"><div class="head"><div><div class="eyebrow">Paso 1 · Elección</div><h2>Elegí la empresa que vas a dirigir.</h2><p class="lead">Tres realidades de negocio. Un mismo desafío: decidir.</p></div><div class="small">CREDENCIAL CEO · <b>'+esc(user.name)+"</b></div></div><div class=\"companies\">"+Object.entries(companies).map(([id,c],idx)=>'<button class="card" data-id="'+id+'"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="icon">'+c.icon+'</div><span class="small" style="font-weight:800;letter-spacing:.1em">0'+(idx+1)+'</span></div><h3>'+c.name+'</h3><p>'+c.type+"<br>"+c.intro+'</p><div style="margin-top:18px;border-top:1px dashed var(--line);padding-top:12px;display:flex;justify-content:space-between;align-items:center"><span class="small">DESAFÍO DE GESTIÓN</span><span class="label" style="margin:0">Asumir →</span></div></button>').join("")+"</div></section>";document.querySelectorAll(".card").forEach(x=>x.onclick=()=>selectCompany(x.dataset.id))}
 function selectCompany(id){company=companies[id];reset();started=true;intro()}
 function intro(){app.innerHTML='<section class="screen"><div class="game"><div class="gamehead"><div><div class="eyebrow">Nueva gestión</div><b>'+company.icon+" "+company.name+'</b></div><span class="label">'+company.type+'</span></div><div class="scenario"><div class="alert">Tu primer día como CEO</div><h3>La empresa necesita una decisión.</h3><p class="lead">Nada avanza solo. Cada pantalla queda detenida hasta que pulses un botón.</p><div class="notice">Los alumnos del stand actúan como equipo asesor y pueden explicar los conceptos de contabilidad gerencial durante la experiencia.</div><div class="actions"><span id="enter">'+btn("Entrar a la empresa →")+'</span><span id="choose">'+btn("Elegir otra empresa","secondary")+"</span></div></div></div></section>";document.getElementById("enter").onclick=()=>{step=1;game()};document.getElementById("choose").onclick=companiesScreen}
-function game(){const q=decisions[step-1];app.innerHTML='<section class="screen"><div class="game"><div class="gamehead"><div><div class="eyebrow">'+esc(company.name)+'</div><b>Decisión '+step+" de 6</b></div><span class="small">CEO: <b>"+esc(user.name)+'</b></span></div><div class="progress"><i style="width:'+((step-1)/6)*100+'%"></i></div>'+dots()+'<div class="scenario"><div class="alert">Escenario '+step+"</div><h3>"+q.title+'</h3><p class="lead">'+q.text+'</p><div class="options">'+q.options.map((o,i)=>'<button class="option" data-i="'+i+'"><b>'+o.title+'</b><span>'+o.desc+"</span></button>").join("")+'</div></div><div class="side"><div class="meters">'+meter("Finanzas",s.fin)+meter("Clientes",s.cli)+meter("Procesos",s.proc)+meter("Aprendizaje",s.apr)+'</div><div class="history"><div class="eyebrow">Recorrido</div>'+(history.length?history.map((h,i)=>'<div class="row"><b>Decisión '+(i+1)+":</b> "+esc(h.title)+"</div>").join(""):'<div class="row">Todavía no tomaste decisiones.</div>')+"</div></div></div></section>";document.querySelectorAll(".option").forEach(x=>x.onclick=()=>{const o=q.options[+x.dataset.i];apply(o.delta);history.push({title:o.title,consequence:o.cons,delta:o.delta.slice()});consequenceScreen(step,o)})}
+function game(){
+  const q=decisions[step-1];
+  app.innerHTML=`
+    <section class="screen">
+      <div class="game">
+        <div class="gamehead">
+          <div><div class="eyebrow">${esc(company.name)}</div><b>Decisión ${step} de 6</b></div>
+          <span class="small">CEO: <b>${esc(user.name)}</b></span>
+        </div>
+        <div class="progress"><i style="width:${((step-1)/6)*100}%"></i></div>
+        ${dots()}
+        <div class="scenario">
+          <div class="alert">Escenario ${step}</div>
+          <h3>${q.title}</h3>
+          <p class="lead">${q.text}</p>
+          <div class="options">
+            ${q.options.map((o,i)=>`<button class="option" data-i="${i}"><b>${o.title}</b><span>${o.desc}</span></button>`).join("")}
+          </div>
+        </div>
+        <div class="side">
+          <div class="meters">
+            ${meter("Finanzas",s.fin)}
+            ${meter("Clientes",s.cli)}
+            ${meter("Procesos",s.proc)}
+            ${meter("Aprendizaje",s.apr)}
+          </div>
+          <div class="history">
+            <div class="eyebrow">Recorrido</div>
+            ${history.length
+              ? history.map((h,i)=>`<div class="row"><b>Decisión ${i+1}:</b> ${esc(h.title)}</div>`).join("")
+              : '<div class="row">Todavía no tomaste decisiones.</div>'}
+          </div>
+        </div>
+      </div>
+    </section>`;
+  document.querySelectorAll(".option").forEach(x=>x.onclick=()=>{
+    const o=q.options[+x.dataset.i];
+    apply(o.delta);
+    history.push({title:o.title,consequence:o.cons,delta:o.delta.slice()});
+    consequenceScreen(step,o);
+  });
+}
 function deltaRow(n,v){const c=v>0?"plus":v<0?"minus":"neutral";return '<div class="delta-row"><span>'+n+'</span><b class="'+c+'">'+(v>0?"+":"")+v+"</b></div>"}
 function consequenceScreen(current,o){app.innerHTML='<section class="screen"><div class="game"><div class="gamehead"><div><div class="eyebrow">Consecuencia de la decisión '+current+'</div><b>No avanza automáticamente.</b></div><span class="label">Resultado intermedio</span></div><div class="consequence"><div class="alert">Efecto dominó</div><h2>Elegiste: '+esc(o.title)+'</h2><p class="lead">'+esc(o.cons)+'</p><div class="consequencegrid"><div class="delta"><h4>Qué cambió</h4>'+deltaRow("Finanzas",o.delta[0])+deltaRow("Clientes",o.delta[1])+deltaRow("Procesos",o.delta[2])+deltaRow("Aprendizaje",o.delta[3])+'</div><div class="delta"><h4>Indicadores actuales</h4>'+meter("Finanzas",s.fin)+meter("Clientes",s.cli)+meter("Procesos",s.proc)+meter("Aprendizaje",s.apr)+'</div></div><div class="notice"><b>La pantalla permanece abierta.</b><br>Conversá la decisión con los estudiantes y continuá cuando estés listo/a.</div><div class="actions"><span id="cont">'+btn(current<6?"Continuar al siguiente desafío →":"Ver mi evaluación como CEO →")+"</span></div></div></div></section>";document.getElementById("cont").onclick=()=>current<6?(step=current+1,game()):finish()}
 function evaluate(){const v=[s.fin,s.cli,s.proc,s.apr],avg=v.reduce((a,b)=>a+b,0)/4,min=Math.min(...v),max=Math.max(...v),n=["Finanzas","Clientes","Procesos","Aprendizaje"],strong=n[v.indexOf(max)],weak=n[v.indexOf(min)];let profile,desc,strengths,focus;if(avg>=72&&min>=55){profile="CEO equilibrado/a";desc="Buscaste mantener varias áreas de la empresa funcionando sin descuidar de forma marcada ninguna de las cuatro perspectivas.";strengths=["Visión integral","Capacidad de balance","Lectura de efectos cruzados"];focus="Seguir profundizando el análisis de costos y presupuesto para sostener el equilibrio en escenarios más exigentes."}else if(s.proc>=s.fin+8&&s.proc>=s.cli&&s.proc>=s.apr){profile="CEO orientado/a a procesos";desc="Tus decisiones muestran una atención especial a la continuidad operativa, el mantenimiento y la eficiencia interna.";strengths=["Eficiencia operativa","Cuidado de procesos","Prevención de riesgos"];focus="Revisar cómo las decisiones operativas impactan en clientes y margen."}else if(s.cli>=s.fin+8&&s.cli>=s.proc&&s.cli>=s.apr){profile="CEO orientado/a al cliente";desc="Priorizaste la relación comercial y la permanencia de los clientes incluso cuando eso implicó resignar parte del margen.";strengths=["Orientación comercial","Fidelización","Lectura del mercado"];focus="Buscar un mayor equilibrio entre satisfacción del cliente y rentabilidad."}else if(s.apr>=s.fin+8&&s.apr>=s.cli&&s.apr>=s.proc){profile="CEO orientado/a al desarrollo";desc="Tu recorrido dio peso importante a capacitación y construcción de capacidades para el mediano plazo.";strengths=["Visión de largo plazo","Inversión en capacidades","Desarrollo organizacional"];focus="Convertir esa inversión en capacidades en mejoras financieras medibles."}else if(s.fin>=s.cli+8&&s.fin>=s.proc){profile="CEO orientado/a a resultados";desc="Priorizaste con frecuencia la protección del margen y el resultado económico.";strengths=["Foco financiero","Decisión bajo presión","Cuidado del margen"];focus="Incorporar de forma más sistemática los efectos sobre clientes, procesos y aprendizaje."}else{profile="CEO de respuesta estratégica";desc="Tu recorrido combinó decisiones de distinta naturaleza según el problema que apareció en cada etapa.";strengths=["Adaptabilidad","Capacidad de respuesta","Lectura de escenarios"];focus="Seguir desarrollando criterios de priorización cuando varios indicadores se mueven a la vez."}return{avg,profile,desc,strengths,focus,strong,weak,performance:avg>=72?"Resultado integral favorable":avg>=58?"Resultado con fortalezas y áreas de atención":"Resultado con varios indicadores bajo presión"}}
