@@ -1,5 +1,5 @@
-/* Backend opcional: pegar aquí la URL /exec de Google Apps Script cuando esté publicada. */
-const SCRIPT_URL = "";
+/* Endpoint de envío del informe por Brevo. Se activa después de configurar el backend en Vercel. */
+const SCRIPT_URL = "PENDIENTE_VERCEL";
 const companies={
 campo:{name:"Envases Plast “Campo Grande”",icon:"🏭",type:"Empresa industrial",intro:"Fabricación de envases para clientes de la región."},
 misionero:{name:"Yerba Mate “El Misionero”",icon:"🌿",type:"PYME agroindustrial",intro:"Producción y comercialización de yerba mate."},
@@ -93,7 +93,43 @@ function evaluate(){const v=[s.fin,s.cli,s.proc,s.apr],avg=v.reduce((a,b)=>a+b,0
 function finish(){const e=evaluate();app.innerHTML='<section class="screen"><div class="game"><div class="gamehead"><div><div class="eyebrow">Paso final</div><b>📜 Dictamen gerencial · '+esc(user.name)+'</b></div><span class="label">Gestión completada</span></div><div class="final"><div class="eyebrow">'+esc(company.name)+'</div><h2>Así terminó tu gestión.</h2><p class="lead">El resultado se construyó a partir de las seis decisiones tomadas durante el recorrido.</p><div class="finalgrid">'+["Finanzas","Clientes","Procesos internos","Aprendizaje"].map((x,i)=>'<div class="finalbox"><b>'+x+'</b><div class="score">'+Math.round([s.fin,s.cli,s.proc,s.apr][i])+'</div><div class="status">'+status([s.fin,s.cli,s.proc,s.apr][i])+'</div></div>').join("")+'</div><div class="profile"><div class="eyebrow">Tu evaluación como CEO</div><h3>'+esc(e.profile)+'</h3><p class="lead" style="margin:0">'+esc(e.desc)+'</p><div class="profilegrid"><div><b>Fortalezas observadas</b><ul class="list">'+e.strengths.map(x=>"<li>"+esc(x)+"</li>").join("")+'</ul></div><div><b>Aspecto para seguir desarrollando</b><p class="status" style="font-size:14px;line-height:1.65">'+esc(e.focus)+'</p></div></div><div class="notice"><b>'+esc(e.performance)+'</b><br>Indicador más alto: '+esc(e.strong)+' · Indicador que requiere más atención: '+esc(e.weak)+' · Promedio: '+Math.round(e.avg)+'/100.</div></div><h3 style="margin-top:28px">Tu recorrido</h3><div class="history">'+history.map((h,i)=>'<div class="row"><b>'+(i+1)+". "+esc(h.title)+'</b><br><span class="small">'+esc(h.consequence)+'</span></div>').join("")+'</div><div class="actions"><span id="pdf">'+btn("Generar CV gerencial en PDF")+'</span><span id="send">'+btn("Enviar el informe a mi Gmail","secondary")+'</span><span id="again">'+btn("Nueva simulación","ghost")+'</span></div><div id="emailStatus" class="email-status"></div></div></div></section>';document.getElementById("pdf").onclick=()=>downloadPdf(e);document.getElementById("send").onclick=()=>sendReport(e);document.getElementById("again").onclick=()=>{started=false;identity()}}
 function buildPdf(e){if(!window.jspdf)throw new Error("No se pudo cargar el generador PDF.");const{jsPDF}=window.jspdf,doc=new jsPDF({unit:"pt",format:"a4"}),W=doc.internal.pageSize.getWidth(),L=48,R=48,MW=W-L-R;let y=58;doc.setFont("helvetica","bold");doc.setFontSize(22);doc.text("CEO POR UN DÍA",L,y);y+=24;doc.setFont("helvetica","normal");doc.setFontSize(11);doc.text("CV GERENCIAL · Perfil basado en las decisiones de la simulación",L,y);y+=23;doc.line(L,y,W-R,y);y+=23;doc.setFont("helvetica","bold");doc.setFontSize(15);doc.text(user.name,L,y);y+=18;doc.setFont("helvetica","normal");doc.setFontSize(11);doc.text(company.name,L,y);y+=15;doc.text("Correo: "+user.email,L,y);y+=23;doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("Perfil de gestión",L,y);y+=21;doc.setFontSize(13);doc.text(e.profile,L,y);y+=18;doc.setFont("helvetica","normal");doc.setFontSize(11);let lines=doc.splitTextToSize(e.desc,MW);doc.text(lines,L,y);y+=lines.length*14+15;doc.setFont("helvetica","bold");doc.setFontSize(14);doc.text("Indicadores finales",L,y);y+=19;[["Finanzas",s.fin],["Clientes",s.cli],["Procesos internos",s.proc],["Aprendizaje",s.apr]].forEach(([n,v])=>{doc.setFont("helvetica","normal");doc.setFontSize(11);doc.text(n+": "+Math.round(v)+"/100 · "+status(v),L,y);y+=15});y+=10;doc.setFont("helvetica","bold");doc.setFontSize(14);doc.text("Fortalezas observadas",L,y);y+=18;doc.setFont("helvetica","normal");e.strengths.forEach(x=>{doc.text("• "+x,L,y);y+=15});y+=6;doc.setFont("helvetica","bold");doc.text("Aspecto para seguir desarrollando",L,y);y+=17;doc.setFont("helvetica","normal");lines=doc.splitTextToSize(e.focus,MW);doc.text(lines,L,y);y+=lines.length*14+17;if(y>690){doc.addPage();y=58}doc.setFont("helvetica","bold");doc.setFontSize(14);doc.text("Dictamen gerencial",L,y);y+=19;doc.setFont("helvetica","normal");doc.setFontSize(11);lines=doc.splitTextToSize(e.performance+". Indicador más alto: "+e.strong+". Indicador que requiere más atención: "+e.weak+". Promedio: "+Math.round(e.avg)+"/100.",MW);doc.text(lines,L,y);y+=lines.length*14+17;doc.setFont("helvetica","bold");doc.setFontSize(14);doc.text("Decisiones tomadas",L,y);y+=19;doc.setFont("helvetica","normal");doc.setFontSize(10);history.forEach((h,i)=>{lines=doc.splitTextToSize((i+1)+". "+h.title+" — "+h.consequence,MW);if(y>735){doc.addPage();y=58}doc.text(lines,L,y);y+=lines.length*13+8});doc.setTextColor(105);doc.setFontSize(9);doc.text("CEO por un Día · Proyecto de exposición contable",L,806);return doc}
 function downloadPdf(e){const el=document.getElementById("emailStatus");try{buildPdf(e).save("CV_CEO_"+user.name.replace(/\s+/g,"_")+".pdf");el.textContent="PDF generado correctamente."}catch(err){el.textContent="No se pudo generar el PDF."}}
-function sendReport(e){const el=document.getElementById("emailStatus");if(!SCRIPT_URL){el.textContent="El envío por Gmail quedará activo cuando conectemos Google Apps Script.";return}try{const dataUri=buildPdf(e).output("datauristring"),base64=dataUri.split(",")[1];const f=document.createElement("form");f.method="POST";f.action=SCRIPT_URL;f.target="mailFrame";f.style.display="none";const data={email:user.email,name:user.name,company:company.name,profile:e.profile,pdfBase64:base64,filename:"CV_CEO_"+user.name.replace(/\s+/g,"_")+".pdf"};Object.entries(data).forEach(([k,v])=>{const i=document.createElement("input");i.type="hidden";i.name=k;i.value=v;f.appendChild(i)});document.body.appendChild(f);el.textContent="Enviando el informe a "+user.email+"…";f.submit();setTimeout(()=>{el.textContent="Enviado. Revisá Spam/Promociones si no aparece enseguida.";f.remove()},2500)}catch(err){el.textContent="No se pudo preparar el envío: "+err.message}}
-const iframe=document.createElement("iframe");iframe.name="mailFrame";iframe.style.display="none";document.body.appendChild(iframe);
+async function sendReport(e){
+  const el=document.getElementById("emailStatus");
+  if(!SCRIPT_URL || SCRIPT_URL==="PENDIENTE_VERCEL"){
+    el.textContent="El envío quedará activo cuando terminemos de conectar el backend.";
+    return;
+  }
+  const sendButton=document.getElementById("send");
+  try{
+    sendButton.style.pointerEvents="none";
+    sendButton.style.opacity=".65";
+    el.textContent="Preparando tu CV gerencial y enviándolo a "+user.email+"…";
+    const dataUri=buildPdf(e).output("datauristring");
+    const base64=dataUri.split(",")[1];
+    const response=await fetch(SCRIPT_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        email:user.email,
+        name:user.name,
+        company:company.name,
+        profile:e.profile,
+        pdfBase64:base64,
+        filename:"CV_CEO_"+user.name.replace(/\s+/g,"_")+".pdf"
+      })
+    });
+    let result={};
+    try{result=await response.json()}catch(_){}
+    if(!response.ok || !result.ok){
+      throw new Error(result.error||"El servicio de correo rechazó el envío.");
+    }
+    el.textContent="¡Listo! Enviamos tu CV gerencial a "+user.email+". Revisá Spam/Promociones si no aparece enseguida.";
+  }catch(err){
+    el.textContent="No se pudo enviar el informe: "+err.message;
+  }finally{
+    sendButton.style.pointerEvents="";
+    sendButton.style.opacity="";
+  }
+}
 window.addEventListener("beforeunload",e=>{if(started){e.preventDefault();e.returnValue=""}});
 home();
