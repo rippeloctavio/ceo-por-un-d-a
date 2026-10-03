@@ -1,9 +1,15 @@
 const nodemailer = require("nodemailer");
 
 module.exports = async function handler(req, res) {
-  const allowedOrigin = "https://rippeloctavio.github.io";
+  const allowedOrigins = new Set([
+    "https://rippeloctavio.github.io",
+    "https://ceo-tercerotecnicatura.vercel.app"
+  ]);
+  const requestOrigin = req.headers.origin || "";
 
-  res.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+  if (requestOrigin && allowedOrigins.has(requestOrigin)) {
+    res.setHeader("Access-Control-Allow-Origin", requestOrigin);
+  }
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Vary", "Origin");
@@ -13,8 +19,7 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ ok: false, error: "Método no permitido." });
   }
 
-  const origin = req.headers.origin;
-  if (origin && origin !== allowedOrigin) {
+  if (requestOrigin && !allowedOrigins.has(requestOrigin)) {
     return res.status(403).json({ ok: false, error: "Origen no autorizado." });
   }
 
